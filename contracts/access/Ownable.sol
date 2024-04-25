@@ -74,6 +74,7 @@ abstract contract Ownable is Context {
      * thereby disabling any functionality that is only available to the owner.
      */
     function renounceOwnership() public virtual onlyOwner {
+        // 转移给 0 地址，相当于放弃 owner 的权限
         _transferOwnership(address(0));
     }
 
