@@ -69,8 +69,10 @@ library ERC1967Utils {
         emit IERC1967.Upgraded(newImplementation);
 
         if (data.length > 0) {
+            // 如果数据长度> 0，这意味着用户希望在更新后进行一些调用，因此在新地址进行委托调用。
             Address.functionDelegateCall(newImplementation, data);
         } else {
+            // 如果数据长度为 0，验证调用没有附加 ether，这只是为了防止资金被困在合约中
             _checkNonPayable();
         }
     }

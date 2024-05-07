@@ -58,6 +58,8 @@ interface ITransparentUpgradeableProxy is IERC1967 {
  * function and the functions declared in {ITransparentUpgradeableProxy} will be resolved in favor of the new one. This
  * could render the `upgradeToAndCall` function inaccessible, preventing upgradeability and compromising transparency.
  */
+
+//  TransparentUpgradeableProxy 继承自 ERC1967Proxy， ERC1967Proxy 继承自 Proxy
 contract TransparentUpgradeableProxy is ERC1967Proxy {
     // An immutable address for the admin to avoid unnecessary SLOADs before each call
     // at the expense of removing the ability to change the admin once it's set.
@@ -75,7 +77,11 @@ contract TransparentUpgradeableProxy is ERC1967Proxy {
      * backed by the implementation at `_logic`, and optionally initialized with `_data` as explained in
      * {ERC1967Proxy-constructor}.
      */
+    // 1.构造函数按继承顺序执行，从基类到派生类
+    // 2.继承的合约构造函数会自动调用，但如果它们接受参数，必须显式调用它们，比如在“TransparentUpgradeableProxy”构造函数中有 ERC1967Proxy(_logic, _data)。
+    //这是显式调用具有特定输入参数的构造函数的语法。
     constructor(address _logic, address initialOwner, bytes memory _data) payable ERC1967Proxy(_logic, _data) {
+        // 将_admin 设置为 ProxyAdmin 合约地址。授权的是“ProxyAdmin”合约，而不是 ProxyAdmin 所有者 EOA。
         _admin = address(new ProxyAdmin(initialOwner));
         // Set the storage value and emit an event for ERC-1967 compatibility
         ERC1967Utils.changeAdmin(_proxyAdmin());
@@ -91,14 +97,18 @@ contract TransparentUpgradeableProxy is ERC1967Proxy {
     /**
      * @dev If caller is the admin process the call internally, otherwise transparently fallback to the proxy behavior.
      */
+    // 1.由于子合约重写 _fallback,优先执行子合约的 _fallback
+    // 2.所有用户调用“TransparentUpgradeableProxy”的所有函数都会调用到这里
     function _fallback() internal virtual override {
         if (msg.sender == _proxyAdmin()) {
+            // 管理员用户调用这里
             if (msg.sig != ITransparentUpgradeableProxy.upgradeToAndCall.selector) {
                 revert ProxyDeniedAdminAccess();
             } else {
                 _dispatchUpgradeToAndCall();
             }
         } else {
+            // 普通用户调用到父合约
             super._fallback();
         }
     }
@@ -111,6 +121,7 @@ contract TransparentUpgradeableProxy is ERC1967Proxy {
      * - If `data` is empty, `msg.value` must be zero.
      */
     function _dispatchUpgradeToAndCall() private {
+        // 从 calldata 中获取新实现地址，然后使用 ERC1967Utils.UpgradeToAndCall，传入新实现地址和任何后续调用的数据。
         (address newImplementation, bytes memory data) = abi.decode(msg.data[4:], (address, bytes));
         ERC1967Utils.upgradeToAndCall(newImplementation, data);
     }
