@@ -47,6 +47,7 @@ abstract contract ERC20 is Context, IERC20, IERC20Metadata, IERC20Errors {
         _symbol = symbol_;
     }
 
+    // Token 的名字,比如 Wrapped Ether
     /**
      * @dev Returns the name of the token.
      */
@@ -54,6 +55,7 @@ abstract contract ERC20 is Context, IERC20, IERC20Metadata, IERC20Errors {
         return _name;
     }
 
+    // Token 的符号,比如 ETH
     /**
      * @dev Returns the symbol of the token, usually a shorter version of the
      * name.
@@ -62,12 +64,13 @@ abstract contract ERC20 is Context, IERC20, IERC20Metadata, IERC20Errors {
         return _symbol;
     }
 
+    // decimals: 这个函数只是为了给用户展示用,不会在合约中进行任何计算
     /**
      * @dev Returns the number of decimals used to get its user representation.
      * For example, if `decimals` equals `2`, a balance of `505` tokens should
      * be displayed to a user as `5.05` (`505 / 10 ** 2`).
      *
-     * Tokens usually opt for a value of 18, imitating the relationship between
+     * Tokens usually opt for a value of 18, imitating(效仿) the relationship between
      * Ether and Wei. This is the default value returned by this function, unless
      * it's overridden.
      *
@@ -107,6 +110,7 @@ abstract contract ERC20 is Context, IERC20, IERC20Metadata, IERC20Errors {
         return true;
     }
 
+    // 获取 owner 允许 spender 花费的额度
     /**
      * @dev See {IERC20-allowance}.
      */
@@ -148,7 +152,9 @@ abstract contract ERC20 is Context, IERC20, IERC20Metadata, IERC20Errors {
      */
     function transferFrom(address from, address to, uint256 value) public virtual returns (bool) {
         address spender = _msgSender();
+        // 先更新一下 spender 可用的额度
         _spendAllowance(from, spender, value);
+        // 再完成实际转账
         _transfer(from, to, value);
         return true;
     }
@@ -164,6 +170,7 @@ abstract contract ERC20 is Context, IERC20, IERC20Metadata, IERC20Errors {
      * NOTE: This function is not virtual, {_update} should be overridden instead.
      */
     function _transfer(address from, address to, uint256 value) internal {
+        // 转账需要检查 from、to 地址有效
         if (from == address(0)) {
             revert ERC20InvalidSender(address(0));
         }
@@ -181,7 +188,8 @@ abstract contract ERC20 is Context, IERC20, IERC20Metadata, IERC20Errors {
      * Emits a {Transfer} event.
      */
     function _update(address from, address to, uint256 value) internal virtual {
-        if (from == address(0)) {
+        // from 为 0 地址时,总供应量增加 value 个(比如 mint 时)
+        if (from == address(0)) { 
             // Overflow check required: The rest of the code assumes that totalSupply never overflows
             _totalSupply += value;
         } else {
@@ -300,6 +308,7 @@ abstract contract ERC20 is Context, IERC20, IERC20Metadata, IERC20Errors {
      */
     function _spendAllowance(address owner, address spender, uint256 value) internal virtual {
         uint256 currentAllowance = allowance(owner, spender);
+        // 优化:如果允许的数量等于最大值,则无需更新,可以优化 gas 费
         if (currentAllowance != type(uint256).max) {
             if (currentAllowance < value) {
                 revert ERC20InsufficientAllowance(spender, currentAllowance, value);
