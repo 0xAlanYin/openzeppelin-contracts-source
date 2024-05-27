@@ -29,8 +29,10 @@ abstract contract ERC721 is Context, ERC165, IERC721, IERC721Metadata, IERC721Er
 
     mapping(address owner => uint256) private _balances;
 
+    // 对应 approve：owner 只是将单个 tokenId 授权给某个地址，仅需记录 tokenId 映射到 operator 的信息，无需 owner 信息
     mapping(uint256 tokenId => address) private _tokenApprovals;
 
+    // 对应 setApprovalForAll：将 owner 下所有的 tokenId 授权/取消授权给某个地址，所以需要记录 owner 映射到 operator 的信息
     mapping(address owner => mapping(address operator => bool)) private _operatorApprovals;
 
     /**
@@ -189,6 +191,8 @@ abstract contract ERC721 is Context, ERC165, IERC721, IERC721Metadata, IERC721Er
      */
     function _isAuthorized(address owner, address spender, uint256 tokenId) internal view virtual returns (bool) {
         return
+            // 参数校验 spender 为有效地址
+            // 三种情况是被授权的：1.spender 是 owner 本人；2.owner 授权 spender 所有 token 操作权限；3.owner 单独授权 spender tokenId 操作权限 
             spender != address(0) &&
             (owner == spender || isApprovedForAll(owner, spender) || _getApproved(tokenId) == spender);
     }
@@ -411,6 +415,7 @@ abstract contract ERC721 is Context, ERC165, IERC721, IERC721Metadata, IERC721Er
             address owner = _requireOwned(tokenId);
 
             // We do not use _isAuthorized because single-token approvals should not be able to call approve
+            // 如果 auth 不是零地址（有效地址），且 auth 不是该 tokenId 的所有者，且 auth 不是被所有者设为操作所有代币的批准用户，那么触发错误 ERC721InvalidApprover(auth)
             if (auth != address(0) && owner != auth && !isApprovedForAll(owner, auth)) {
                 revert ERC721InvalidApprover(auth);
             }

@@ -20,9 +20,9 @@ abstract contract ERC1155 is Context, ERC165, IERC1155, IERC1155MetadataURI, IER
     using Arrays for uint256[];
     using Arrays for address[];
 
-    mapping(uint256 id => mapping(address account => uint256)) private _balances;
+    mapping(uint256 id => mapping(address account => uint256)) private _balances; // 保存代币种类 id 对应 account 的余额,即 account 拥有多少种类为 id 的token个数。
 
-    mapping(address account => mapping(address operator => bool)) private _operatorApprovals;
+    mapping(address account => mapping(address operator => bool)) private _operatorApprovals; // account对operator的授权情况，true表示已经授权，false表示未授权
 
     // Used as the URI for all token types by relying on ID substitution, e.g. https://token-cdn-domain/{id}.json
     string private _uri;
@@ -38,10 +38,8 @@ abstract contract ERC1155 is Context, ERC165, IERC1155, IERC1155MetadataURI, IER
      * @dev See {IERC165-supportsInterface}.
      */
     function supportsInterface(bytes4 interfaceId) public view virtual override(ERC165, IERC165) returns (bool) {
-        return
-            interfaceId == type(IERC1155).interfaceId ||
-            interfaceId == type(IERC1155MetadataURI).interfaceId ||
-            super.supportsInterface(interfaceId);
+        return interfaceId == type(IERC1155).interfaceId || interfaceId == type(IERC1155MetadataURI).interfaceId
+            || super.supportsInterface(interfaceId);
     }
 
     /**
@@ -54,7 +52,7 @@ abstract contract ERC1155 is Context, ERC165, IERC1155, IERC1155MetadataURI, IER
      * Clients calling this function must replace the `\{id\}` substring with the
      * actual token type ID.
      */
-    function uri(uint256 /* id */) public view virtual returns (string memory) {
+    function uri(uint256 /* id */ ) public view virtual returns (string memory) {
         return _uri;
     }
 
@@ -72,10 +70,12 @@ abstract contract ERC1155 is Context, ERC165, IERC1155, IERC1155MetadataURI, IER
      *
      * - `accounts` and `ids` must have the same length.
      */
-    function balanceOfBatch(
-        address[] memory accounts,
-        uint256[] memory ids
-    ) public view virtual returns (uint256[] memory) {
+    function balanceOfBatch(address[] memory accounts, uint256[] memory ids)
+        public
+        view
+        virtual
+        returns (uint256[] memory)
+    {
         if (accounts.length != ids.length) {
             revert ERC1155InvalidArrayLength(ids.length, accounts.length);
         }
@@ -374,13 +374,15 @@ abstract contract ERC1155 is Context, ERC165, IERC1155, IERC1155MetadataURI, IER
         emit ApprovalForAll(owner, operator, approved);
     }
 
+    // 功能:将传入的两个参数分别封装成两个 uint256[]类型的数组。
     /**
      * @dev Creates an array in memory with only one value for each of the elements provided.
      */
-    function _asSingletonArrays(
-        uint256 element1,
-        uint256 element2
-    ) private pure returns (uint256[] memory array1, uint256[] memory array2) {
+    function _asSingletonArrays(uint256 element1, uint256 element2)
+        private
+        pure
+        returns (uint256[] memory array1, uint256[] memory array2)
+    {
         /// @solidity memory-safe-assembly
         assembly {
             // Load the free memory pointer

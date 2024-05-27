@@ -21,5 +21,6 @@ interface IERC165 {
      *
      * This function call must use less than 30 000 gas.
      */
+    // ERC165 是一个合约标准，这个标准要求合约提供其实现了哪些接口，这样再与合约进行交互的时候可以先调用此接口进行查询。
     function supportsInterface(bytes4 interfaceId) external view returns (bool);
 }

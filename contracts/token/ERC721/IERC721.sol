@@ -12,6 +12,7 @@ interface IERC721 is IERC165 {
     /**
      * @dev Emitted when `tokenId` token is transferred from `from` to `to`.
      */
+    // Transfer事件，在发生交易转移时触发。Solidity event 在 EVM 的日志记录功能之上提供了一个抽象。应用程序可以通过以太坊客户端的 RPC 接口订阅和监听这些事件
     event Transfer(address indexed from, address indexed to, uint256 indexed tokenId);
 
     /**
@@ -88,6 +89,8 @@ interface IERC721 is IERC165 {
      *
      * Emits a {Transfer} event.
      */
+    //警告：请注意，调用者有责任确认接收者有能力接收 ERC-721，否则它们可能会永久丢失。 使用 {safeTransferFrom} 可防止丢失，
+    //但调用者必须了解这会添加一个外部调用，这可能会产生重入漏洞。      
     function transferFrom(address from, address to, uint256 tokenId) external;
 
     /**

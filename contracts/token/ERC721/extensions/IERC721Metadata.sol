@@ -23,5 +23,6 @@ interface IERC721Metadata is IERC721 {
     /**
      * @dev Returns the Uniform Resource Identifier (URI) for `tokenId` token.
      */
+    // 返回_tokenId所对应的外部资源文件的URI（通常是IPFS或HTTP(S)路径。tokenURI通常是被web3调用，以便在应用层做相应的查询和展示。
     function tokenURI(uint256 tokenId) external view returns (string memory);
 }

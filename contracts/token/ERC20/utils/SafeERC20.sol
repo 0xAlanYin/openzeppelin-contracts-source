@@ -34,6 +34,8 @@ library SafeERC20 {
      * non-reverting calls are assumed to be successful.
      */
     function safeTransfer(IERC20 token, address to, uint256 value) internal {
+        // abi.encodeCall(token.transfer, (to, value)) 等价于 abi.encodeWithSignature("transfer(address,uint256)", to,value);
+        // Solidity 0.8.0 引入的新功能，用于将函数调用的签名和参数编码成字节数组。简化了低级调用时的数据编码。
         _callOptionalReturn(token, abi.encodeCall(token.transfer, (to, value)));
     }
 
@@ -149,6 +151,8 @@ library SafeERC20 {
         // the target address contains contract code and also asserts for success in the low-level call.
 
         bytes memory returndata = address(token).functionCall(data);
+        // 某些 ERC-20 代币合约在执行成功时不返回任何数据。为了兼容这些合约，如果返回数据的长度为零，就认为操作是成功的;
+        // 如果有返回数据，那么返回值必须为 true 才认为操作成功，否则认为操作失败。
         if (returndata.length != 0 && !abi.decode(returndata, (bool))) {
             revert SafeERC20FailedOperation(address(token));
         }

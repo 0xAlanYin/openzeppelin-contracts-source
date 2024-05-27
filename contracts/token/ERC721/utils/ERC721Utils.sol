@@ -19,13 +19,15 @@ library ERC721Utils {
      * Otherwise, the recipient must implement {IERC721Receiver-onERC721Received} and return the acceptance magic value to accept
      * the transfer.
      */
-    function checkOnERC721Received(
-        address operator,
-        address from,
-        address to,
-        uint256 tokenId,
-        bytes memory data
-    ) internal {
+    /**
+     * 通过在“to”地址上调用 {IERC721-onERC721Received} 对所提供的“operator”执行验收检查。 “operator”通常是发起令牌传输的地址（即“msg.sender”）。
+     * 如果目标地址不包含代码（即 EOA），则不会执行接受调用，并将其视为无操作。
+     * 否则，接收方必须实现 {IERC721Receiver-onERC721Received} 并返回接受魔法值以接受转账。Ï
+     */
+    function checkOnERC721Received(address operator, address from, address to, uint256 tokenId, bytes memory data)
+        internal
+    {
+        // to.code.length > 0 说明是合约，不是 EOA 账户
         if (to.code.length > 0) {
             try IERC721Receiver(to).onERC721Received(operator, from, tokenId, data) returns (bytes4 retval) {
                 if (retval != IERC721Receiver.onERC721Received.selector) {
