@@ -11,6 +11,7 @@ interface IERC1822Proxiable {
     /**
      * @dev Returns the storage slot that the proxiable contract assumes is being used to store the implementation
      * address.
+     * 返回代理合约承载用于存储实现地址的存储槽
      *
      * IMPORTANT: A proxy pointing at a proxiable contract should not be considered proxiable itself, because this risks
      * bricking a proxy that upgrades to it, by delegating to itself until out of gas. Thus it is critical that this

@@ -55,6 +55,7 @@ interface IERC777 {
      *
      * For most token contracts, this value will equal 1.
      */
+    // 代币最小的划分粒度（>=1），必须在创建时设定，之后不可以更改，不管是在铸币、发送还是销毁操作的代币数量，必需是粒度的整数倍。
     function granularity() external view returns (uint256);
 
     /**
@@ -107,6 +108,7 @@ interface IERC777 {
      *
      * See {operatorSend} and {operatorBurn}.
      */
+    // 是否是某个持有者的操作员
     function isOperatorFor(address operator, address tokenHolder) external view returns (bool);
 
     /**
@@ -120,6 +122,7 @@ interface IERC777 {
      *
      * - `operator` cannot be calling address.
      */
+    // 设置一个地址作为 caller（即 msg.sender）的操作员，需要触发AuthorizedOperator事件
     function authorizeOperator(address operator) external;
 
     /**
@@ -133,6 +136,7 @@ interface IERC777 {
      *
      * - `operator` cannot be calling address.
      */
+    // 移除  caller（即 msg.sender）上 operator 操作员的权限， 需要触发RevokedOperator事件
     function revokeOperator(address operator) external;
 
     /**
@@ -143,6 +147,8 @@ interface IERC777 {
      * This list is immutable, but individual holders may revoke these via
      * {revokeOperator}, in which case {isOperatorFor} will return false.
      */
+    // 操作员相关的操作（Operator 是可以代表持有者发送和销毁代币的账号地址）
+    // 获取代币合约默认的操作员列表
     function defaultOperators() external view returns (address[] memory);
 
     /**
@@ -163,6 +169,14 @@ interface IERC777 {
      * - `recipient` cannot be the zero address.
      * - if `recipient` is a contract, it must implement the {IERC777Recipient}
      * interface.
+     */
+    /**
+     * operatorSend 可以通过参数operatorData携带操作者的信息，发送代币除了执行对应账户的余额加减和触发事件之外，还有额外的规定：
+     * 1.如果 sender 有通过 ERC1820 注册 ERC777TokensSender 实现接口， 代币合约必须调用其 tokensToSend 钩子函数。
+     * 2.如果 recipient 有通过 ERC1820 注册 ERC777TokensRecipient 实现接口， 代币合约必须调用其 tokensReceived 钩子函数。
+     * 3.如果有 tokensToSend 钩子函数，必须在修改余额状态之前调用。
+     * 4.如果有 tokensReceived 钩子函数，必须在修改余额状态之后调用。
+     * 5.调用钩子函数及触发事件时， data 和 operatorData 必须原样传递，因为 tokensToSend 和 tokensReceived 函数可能根据这个数据取消转账（触发 revert）。
      */
     function operatorSend(
         address sender,

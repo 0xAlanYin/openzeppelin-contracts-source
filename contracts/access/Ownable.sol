@@ -36,6 +36,7 @@ abstract contract Ownable is Context {
      * @dev Initializes the contract setting the address provided by the deployer as the initial owner.
      */
     constructor(address initialOwner) {
+        // 检查防止将 owner 设置为零地址
         if (initialOwner == address(0)) {
             revert OwnableInvalidOwner(address(0));
         }
@@ -73,6 +74,7 @@ abstract contract Ownable is Context {
      * NOTE: Renouncing ownership will leave the contract without an owner,
      * thereby disabling any functionality that is only available to the owner.
      */
+    // 放弃所有权
     function renounceOwnership() public virtual onlyOwner {
         // 转移给 0 地址，相当于放弃 owner 的权限
         _transferOwnership(address(0));
@@ -96,6 +98,7 @@ abstract contract Ownable is Context {
     function _transferOwnership(address newOwner) internal virtual {
         address oldOwner = _owner;
         _owner = newOwner;
+        // owner 变更，触发事件
         emit OwnershipTransferred(oldOwner, newOwner);
     }
 }

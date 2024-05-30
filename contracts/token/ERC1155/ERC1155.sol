@@ -20,9 +20,11 @@ abstract contract ERC1155 is Context, ERC165, IERC1155, IERC1155MetadataURI, IER
     using Arrays for uint256[];
     using Arrays for address[];
 
-    mapping(uint256 id => mapping(address account => uint256)) private _balances; // 保存代币种类 id 对应 account 的余额,即 account 拥有多少种类为 id 的token个数。
+    // 保存代币种类 id 对应 account 的余额,即 account 拥有多少种类为 id 的token个数。
+    mapping(uint256 id => mapping(address account => uint256)) private _balances; 
 
-    mapping(address account => mapping(address operator => bool)) private _operatorApprovals; // account对operator的授权情况，true表示已经授权，false表示未授权
+     // account对operator的授权情况，true表示已经授权，false表示未授权
+    mapping(address account => mapping(address operator => bool)) private _operatorApprovals;
 
     // Used as the URI for all token types by relying on ID substitution, e.g. https://token-cdn-domain/{id}.json
     string private _uri;

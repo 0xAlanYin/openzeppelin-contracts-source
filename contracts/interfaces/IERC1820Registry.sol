@@ -64,6 +64,7 @@ interface IERC1820Registry {
      * queried for support, unless `implementer` is the caller. See
      * {IERC1820Implementer-canImplementInterfaceForAddress}.
      */
+    // 参数 account 及 implementer 均是合约的地址，_interfaceHash 是 ERC777Token 的 keccak256 哈希值（0xac7fbab5...177054）
     function setInterfaceImplementer(address account, bytes32 _interfaceHash, address implementer) external;
 
     /**

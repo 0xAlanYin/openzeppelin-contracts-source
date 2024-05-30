@@ -50,6 +50,7 @@ abstract contract ERC20Permit is ERC20, IERC20Permit, EIP712, Nonces {
         bytes32 r,
         bytes32 s
     ) public virtual {
+        // 允许的操作未过期
         if (block.timestamp > deadline) {
             revert ERC2612ExpiredSignature(deadline);
         }

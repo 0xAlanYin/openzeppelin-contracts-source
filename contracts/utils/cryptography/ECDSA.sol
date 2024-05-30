@@ -5,6 +5,7 @@ pragma solidity ^0.8.20;
 
 /**
  * @dev Elliptic Curve Digital Signature Algorithm (ECDSA) operations.
+ * 椭圆曲线数字签名算法 (ECDSA) 操作
  *
  * These functions can be used to verify that a message was signed by the holder
  * of the private keys of a given address.
@@ -119,12 +120,11 @@ library ECDSA {
      * @dev Overload of {ECDSA-tryRecover} that receives the `v`,
      * `r` and `s` signature fields separately.
      */
-    function tryRecover(
-        bytes32 hash,
-        uint8 v,
-        bytes32 r,
-        bytes32 s
-    ) internal pure returns (address, RecoverError, bytes32) {
+    function tryRecover(bytes32 hash, uint8 v, bytes32 r, bytes32 s)
+        internal
+        pure
+        returns (address, RecoverError, bytes32)
+    {
         // EIP-2 still allows signature malleability for ecrecover(). Remove this possibility and make the signature
         // unique. Appendix F in the Ethereum Yellow paper (https://ethereum.github.io/yellowpaper/paper.pdf), defines
         // the valid range for s in (301): 0 < s < secp256k1n ÷ 2 + 1, and for v in (302): v ∈ {27, 28}. Most
@@ -134,12 +134,16 @@ library ECDSA {
         // with 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141 - s1 and flip v from 27 to 28 or
         // vice versa. If your library also generates signatures with 0/1 for v instead 27/28, add 27 to v to accept
         // these malleable signatures as well.
+        // 上面的注释解释了签名唯一性和有效性检查的背景。为了防止签名可塑性，EIP-2定义了s的有效范围为0 < s < secp256k1n ÷ 2 + 1，v的有效值为27或28。
+        //签名可塑性指的是签名可以有多个有效的变体，解决办法是确保s值在有效范围内，并将v值标准化。
         if (uint256(s) > 0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF5D576E7357A4501DDFE92F46681B20A0) {
             return (address(0), RecoverError.InvalidSignatureS, s);
         }
 
         // If the signature is valid (and not malleable), return the signer address
+        // 使用 ecrecover 函数尝试从给定的hash、v、r和s恢复签名者地址。ecrecover 是以太坊内置函数，用于从消息哈希和签名参数中恢复签名者的地址。
         address signer = ecrecover(hash, v, r, s);
+        // 如果恢复的地址为零地址，则返回InvalidSignature错误
         if (signer == address(0)) {
             return (address(0), RecoverError.InvalidSignature, bytes32(0));
         }

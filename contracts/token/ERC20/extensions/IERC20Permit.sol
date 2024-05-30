@@ -6,6 +6,7 @@ pragma solidity ^0.8.20;
 /**
  * @dev Interface of the ERC-20 Permit extension allowing approvals to be made via signatures, as defined in
  * https://eips.ethereum.org/EIPS/eip-2612[ERC-2612].
+ * ERC-20 Permit 扩展的接口允许通过签名进行批准(相当于授权和转账在同一笔交易内完成)
  *
  * Adds the {permit} method, which can be used to change an account's ERC-20 allowance (see {IERC20-allowance}) by
  * presenting a message signed by the account. By not relying on {IERC20-approve}, the token holder account doesn't
@@ -13,9 +14,12 @@ pragma solidity ^0.8.20;
  *
  * ==== Security Considerations
  *
- * There are two important considerations concerning the use of `permit`. The first is that a valid permit signature
- * expresses an allowance, and it should not be assumed to convey additional meaning. In particular, it should not be
- * considered as an intention to spend the allowance in any specific way. The second is that because permits have
+ * There are two important considerations concerning the use of `permit`.
+ *  The first is that a valid permit signature
+ * expresses an allowance, and it should not be assumed to convey（传达） additional meaning. In particular, it should not be
+ * considered as an intention to spend the allowance in any specific way.
+ * 第二个原因是，由于 permits 具有内置的重播保护，并且任何人都可以提交，因此它们可以抢先执行。使用许可的协议应该考虑到这一点并允许“许可”调用失败。
+ * The second is that because permits have
  * built-in replay protection and can be submitted by anyone, they can be frontrun. A protocol that uses permits should
  * take this into consideration and allow a `permit` call to fail. Combining these two aspects, a pattern that may be
  * generally recommended is:
@@ -35,6 +39,7 @@ pragma solidity ^0.8.20;
  * Observe that: 1) `msg.sender` is used as the owner, leaving no ambiguity as to the signer intent, and 2) the use of
  * `try/catch` allows the permit to fail and makes the code tolerant to frontrunning. (See also
  * {SafeERC20-safeTransferFrom}).
+ * 1) `msg.sender` 被用作owner,不会对签名者的意图留下任何歧义，并且 2）使用“try/catch”允许许可失败并使代码能够容忍抢先交易。
  *
  * Additionally, note that smart contract wallets (such as Argent or Safe) are not able to produce permit signatures, so
  * contracts should have entry points that don't rely on permit.
@@ -63,15 +68,8 @@ interface IERC20Permit {
      *
      * CAUTION: See Security Considerations above.
      */
-    function permit(
-        address owner,
-        address spender,
-        uint256 value,
-        uint256 deadline,
-        uint8 v,
-        bytes32 r,
-        bytes32 s
-    ) external;
+    function permit(address owner, address spender, uint256 value, uint256 deadline, uint8 v, bytes32 r, bytes32 s)
+        external;
 
     /**
      * @dev Returns the current nonce for `owner`. This value must be

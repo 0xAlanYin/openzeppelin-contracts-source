@@ -4,14 +4,14 @@
 pragma solidity ^0.8.20;
 
 /**
- * @dev This is a base contract to aid in writing upgradeable contracts, or any kind of contract that will be deployed
+ * @dev This is a base contract to aid（帮助） in writing upgradeable contracts, or any kind of contract that will be deployed
  * behind a proxy. Since proxied contracts do not make use of a constructor, it's common to move constructor logic to an
  * external initializer function, usually called `initialize`. It then becomes necessary to protect this initializer
  * function so it can only be called once. The {initializer} modifier provided by this contract will have this effect.
  *
  * The initialization functions use a version number. Once a version number is used, it is consumed and cannot be
  * reused. This mechanism prevents re-execution of each "step" but allows the creation of new initialization steps in
- * case an upgrade adds a module that needs to be initialized.
+ * case an upgrade adds a module that needs to be initialized.（但允许在升级添加需要初始化的模块时创建新的初始化步骤。）
  *
  * For example:
  *
@@ -33,8 +33,8 @@ pragma solidity ^0.8.20;
  * TIP: To avoid leaving the proxy in an uninitialized state, the initializer function should be called as early as
  * possible by providing the encoded function call as the `_data` argument to {ERC1967Proxy-constructor}.
  *
- * CAUTION: When used with inheritance, manual care must be taken to not invoke a parent initializer twice, or to ensure
- * that all initializers are idempotent. This is not verified automatically as constructors are by Solidity.
+ * CAUTION: When used with inheritance（继承）, manual care must be taken to not invoke a parent initializer twice, or to ensure
+ * that all initializers are idempotent（幂等的）. This is not verified automatically as constructors are by Solidity.
  *
  * [CAUTION]
  * ====
@@ -101,12 +101,17 @@ abstract contract Initializable {
      *
      * Emits an {Initialized} event.
      */
+    // 与“reinitializer(1)”类似，不同之处在于在构造函数的上下文中，“初始化程序”可以被调用任意次。 构造函数中的这种行为在测试期间可能很有用，但预计不会在生产中使用。
     modifier initializer() {
         // solhint-disable-next-line var-name-mixedcase
+        // 通过 _getInitializableStorage 函数获取存储在合约中的初始化状态，$ 是一种变量命名风格，用于表示该变量存储初始化状态。
         InitializableStorage storage $ = _getInitializableStorage();
 
         // Cache values to avoid duplicated sloads
+        // 缓存一些变量以避免重复读取存储数据（sloads），因为反复读取 storage 变量会消耗更多的 gas
+        // 表示是否为顶层调用（即是否首次调用初始化函数）
         bool isTopLevelCall = !$._initializing;
+        // 表示当前合约的初始化状态
         uint64 initialized = $._initialized;
 
         // Allowed calls:
@@ -114,7 +119,9 @@ abstract contract Initializable {
         //                 initialized
         // - construction: the contract is initialized at version 1 (no reininitialization) and the
         //                 current contract is just being deployed
+        // 表示合约不在初始化状态且之前没有初始化过版本
         bool initialSetup = initialized == 0 && isTopLevelCall;
+        // 表示合约初始化版本为1，且当前合约正在部署中（即 address(this).code.length == 0）
         bool construction = initialized == 1 && address(this).code.length == 0;
 
         if (!initialSetup && !construction) {
@@ -125,6 +132,7 @@ abstract contract Initializable {
             $._initializing = true;
         }
         _;
+        // 如果是顶层调用，完成初始化后将 _initializing 状态设置为 false，并发出 Initialized 事件，表示合约已成功初始化
         if (isTopLevelCall) {
             $._initializing = false;
             emit Initialized(1);
@@ -189,6 +197,7 @@ abstract contract Initializable {
      *
      * Emits an {Initialized} event the first time it is successfully executed.
      */
+    // 锁定合约，防止将来重新初始化。这不能是 initializer 调用的一部分。在合约的构造函数中调用此函数将阻止该合约初始化或重新初始化为任何版本。建议实现合约使用它来锁定设计使用代理合约。
     function _disableInitializers() internal virtual {
         // solhint-disable-next-line var-name-mixedcase
         InitializableStorage storage $ = _getInitializableStorage();

@@ -9,12 +9,14 @@ import {ERC1967Utils} from "../ERC1967/ERC1967Utils.sol";
 /**
  * @dev An upgradeability mechanism designed for UUPS proxies. The functions included here can perform an upgrade of an
  * {ERC1967Proxy}, when this contract is set as the implementation behind such a proxy.
+ * 为 UUPS 代理设计的可升级机制。当此合约被设置为此类代理背后的实现时，内部包含的函数可以执行 {ERC1967Proxy} 的升级。
  *
- * A security mechanism ensures that an upgrade does not turn off upgradeability accidentally, although this risk is
+ * A security mechanism ensures that an upgrade does not turn off upgradeability accidentally（意外升级能力）, although this risk is
  * reinstated if the upgrade retains upgradeability but removes the security mechanism, e.g. by replacing
  * `UUPSUpgradeable` with a custom implementation of upgrades.
  *
  * The {_authorizeUpgrade} function must be overridden to include access restriction to the upgrade mechanism.
+ * 注意点：函数 _authorizeUpgrade 必须被重写，限制升级机制的访问权限（否则，任何人都可以升级）
  */
 abstract contract UUPSUpgradeable is IERC1822Proxiable {
     /// @custom:oz-upgrades-unsafe-allow state-variable-immutable
@@ -56,6 +58,7 @@ abstract contract UUPSUpgradeable is IERC1822Proxiable {
      * @dev Check that the execution is not being performed through a delegate call. This allows a function to be
      * callable on the implementing contract but not through proxies.
      */
+    // 检查执行是否没有通过 delegate call 执行。这允许「实现合约」可调用函数，但不能通过「代理合约」调用函数
     modifier notDelegated() {
         _checkNotDelegated();
         _;
@@ -74,7 +77,7 @@ abstract contract UUPSUpgradeable is IERC1822Proxiable {
     }
 
     /**
-     * @dev Upgrade the implementation of the proxy to `newImplementation`, and subsequently execute the function call
+     * @dev Upgrade the implementation of the proxy to `newImplementation`, and subsequently（随后） execute the function call
      * encoded in `data`.
      *
      * Calls {_authorizeUpgrade}.
@@ -95,8 +98,10 @@ abstract contract UUPSUpgradeable is IERC1822Proxiable {
      */
     function _checkProxy() internal view virtual {
         if (
-            address(this) == __self || // Must be called through delegatecall
-            ERC1967Utils.getImplementation() != __self // Must be called through an active proxy
+            // 在代理模式下，合约函数会通过 delegatecall 调用，address(this) 是指向代理合约的地址，而不是实现合约的地址（即 __self）
+            address(this) == __self // Must be called through delegatecall
+                // ERC1967Utils.getImplementation() 返回实现合约的地址，在有效的代理合约中，代理合约中的实现合约地址应该等于实现合约的地址（即 __self）
+                || ERC1967Utils.getImplementation() != __self // Must be called through an active proxy
         ) {
             revert UUPSUnauthorizedCallContext();
         }
@@ -133,6 +138,7 @@ abstract contract UUPSUpgradeable is IERC1822Proxiable {
      *
      * Emits an {IERC1967-Upgraded} event.
      */
+    // 对 UUPS 代理进行安全检查，并通过额外设置调用来执行实施升级。
     function _upgradeToAndCallUUPS(address newImplementation, bytes memory data) private {
         try IERC1822Proxiable(newImplementation).proxiableUUID() returns (bytes32 slot) {
             if (slot != ERC1967Utils.IMPLEMENTATION_SLOT) {

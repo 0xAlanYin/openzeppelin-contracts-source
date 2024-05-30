@@ -31,6 +31,7 @@ library MerkleProof {
      * sibling hashes on the branch from the leaf to the root of the tree. Each
      * pair of leaves and each pair of pre-images are assumed to be sorted.
      */
+    // 如果可以证明“叶子”是“根”已经定义好的 Merkle 树的一部分，则返回 true。为此，必须提供“证明”，其中包含从叶子到树根的分支上的兄弟哈希值。每对叶子和每对pre-images都假定已排序。
     function verify(bytes32[] memory proof, bytes32 root, bytes32 leaf) internal pure returns (bool) {
         return processProof(proof, leaf) == root;
     }

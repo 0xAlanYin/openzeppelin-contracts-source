@@ -152,7 +152,7 @@ library SafeERC20 {
 
         bytes memory returndata = address(token).functionCall(data);
         // 某些 ERC-20 代币合约在执行成功时不返回任何数据。为了兼容这些合约，如果返回数据的长度为零，就认为操作是成功的;
-        // 如果有返回数据，那么返回值必须为 true 才认为操作成功，否则认为操作失败。
+        // 如果有返回数据，那么返回值必须为 true（即操作转账成功与否） 才认为操作成功，否则认为操作失败。
         if (returndata.length != 0 && !abi.decode(returndata, (bool))) {
             revert SafeERC20FailedOperation(address(token));
         }

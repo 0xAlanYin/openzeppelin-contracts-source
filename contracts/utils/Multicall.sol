@@ -8,6 +8,7 @@ import {Context} from "./Context.sol";
 
 /**
  * @dev Provides a function to batch together multiple calls in a single external call.
+ * 提供在单个外部调用中批量处理多个调用的功能。
  *
  * Consider any assumption about calldata validation performed by the sender may be violated if it's not especially
  * careful about sending transactions invoking {multicall}. For example, a relay address that filters function
@@ -24,9 +25,9 @@ abstract contract Multicall is Context {
      * @custom:oz-upgrades-unsafe-allow-reachable delegatecall
      */
     function multicall(bytes[] calldata data) external virtual returns (bytes[] memory results) {
-        bytes memory context = msg.sender == _msgSender()
-            ? new bytes(0)
-            : msg.data[msg.data.length - _contextSuffixLength():];
+        // msg.sender == _msgSender() 意味着没有代理调用，context 初始化为空；若存在代理调用，context 初始化为 msg.data 的后缀
+        bytes memory context =
+            msg.sender == _msgSender() ? new bytes(0) : msg.data[msg.data.length - _contextSuffixLength():];
 
         results = new bytes[](data.length);
         for (uint256 i = 0; i < data.length; i++) {

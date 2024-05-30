@@ -7,6 +7,7 @@ import {Strings} from "../Strings.sol";
 
 /**
  * @dev Signature message hash utilities for producing digests to be consumed by {ECDSA} recovery or signing.
+ *  签名消息哈希的 utilities，用于生成以供 {ECDSA} 恢复或签名使用的摘要。
  *
  * The library provides methods for generating a hash of a message that conforms to the
  * https://eips.ethereum.org/EIPS/eip-191[ERC-191] and https://eips.ethereum.org/EIPS/eip-712[EIP 712]
@@ -61,11 +62,12 @@ library MessageHashUtils {
      * See {ECDSA-recover}.
      */
     function toDataWithIntendedValidatorHash(address validator, bytes memory data) internal pure returns (bytes32) {
-        return keccak256(abi.encodePacked(hex"19_00", validator, data));
+        return keccak256(abi.encodePacked(hex"1900", validator, data));
     }
 
     /**
      * @dev Returns the keccak256 digest of an EIP-712 typed data (ERC-191 version `0x01`).
+     * 返回 EIP-712 类型数据的 keccak256 摘要
      *
      * The digest is calculated from a `domainSeparator` and a `structHash`, by prefixing them with
      * `\x19\x01` and hashing the result. It corresponds to the hash signed by the
@@ -77,7 +79,7 @@ library MessageHashUtils {
         /// @solidity memory-safe-assembly
         assembly {
             let ptr := mload(0x40)
-            mstore(ptr, hex"19_01")
+            mstore(ptr, hex"1901")
             mstore(add(ptr, 0x02), domainSeparator)
             mstore(add(ptr, 0x22), structHash)
             digest := keccak256(ptr, 0x42)

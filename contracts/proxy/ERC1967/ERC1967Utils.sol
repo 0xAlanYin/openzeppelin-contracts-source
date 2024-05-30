@@ -18,6 +18,7 @@ library ERC1967Utils {
      * This is the keccak-256 hash of "eip1967.proxy.implementation" subtracted by 1.
      */
     // solhint-disable-next-line private-vars-leading-underscore
+    // 存储实现合约地址的 solt 位置（一般是一个非常远的槽，可以认为永远不会冲突和被占用）
     bytes32 internal constant IMPLEMENTATION_SLOT = 0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc;
 
     /**
@@ -72,7 +73,7 @@ library ERC1967Utils {
             // 如果数据长度> 0，这意味着用户希望在更新后进行一些调用，因此在新地址进行委托调用。
             Address.functionDelegateCall(newImplementation, data);
         } else {
-            // 如果数据长度为 0，验证调用没有附加 ether，这只是为了防止资金被困在合约中
+            // 如果数据长度为 0，验证调用没有附加 ether，这只是为了防止资金被锁死在合约中
             _checkNonPayable();
         }
     }
@@ -82,6 +83,7 @@ library ERC1967Utils {
      * This is the keccak-256 hash of "eip1967.proxy.admin" subtracted by 1.
      */
     // solhint-disable-next-line private-vars-leading-underscore
+    // 存储合约管理员的存储 slot 位置
     bytes32 internal constant ADMIN_SLOT = 0xb53127684a568b3173ae13b9f8a6016e243e63b6e8ee1178d6a717850b5d6103;
 
     /**
@@ -120,6 +122,7 @@ library ERC1967Utils {
      * This is the keccak-256 hash of "eip1967.proxy.beacon" subtracted by 1.
      */
     // solhint-disable-next-line private-vars-leading-underscore
+    // bytes32(uint256(keccak256('eip1967.proxy.beacon')) - 1)
     bytes32 internal constant BEACON_SLOT = 0xa3f0ad74e5423aebfd80d3ef4346578335a9a72aeaee59ff6cb3582b35133d50;
 
     /**

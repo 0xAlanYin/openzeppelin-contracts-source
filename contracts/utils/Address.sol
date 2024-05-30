@@ -113,6 +113,8 @@ library Address {
         } else {
             // only check if target is a contract if the call was successful and the return data is empty
             // otherwise we already know that it was a contract
+            // 仅在调用成功且返回数据为空时才检查目标是否为合约，不是合约则报错
+            // 如果 returndata.length == 0 说明对应调用的函数没有返回值，此时必须确保被调用的地址是一个合约，否则就要报错 AddressEmptyCode
             if (returndata.length == 0 && target.code.length == 0) {
                 revert AddressEmptyCode(target);
             }

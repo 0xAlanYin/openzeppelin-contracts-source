@@ -92,6 +92,7 @@ abstract contract EIP712 is IERC5267 {
     /**
      * @dev Given an already https://eips.ethereum.org/EIPS/eip-712#definition-of-hashstruct[hashed struct], this
      * function returns the hash of the fully encoded EIP712 message for this domain.
+     * 该函数返回该域的完全编码的 EIP712 消息的哈希值。
      *
      * This hash can be used together with {ECDSA-recover} to obtain the signer of a message. For example:
      *
