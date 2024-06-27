@@ -25,15 +25,18 @@ import {IGovernor, IERC6372} from "./IGovernor.sol";
  * - Additionally, {votingPeriod} must also be implemented
  */
 abstract contract Governor is Context, ERC165, EIP712, Nonces, IGovernor, IERC721Receiver, IERC1155Receiver {
+    // 使用了DoubleEndedQueue库，这是一个双端队列，用于管理队列操作
     using DoubleEndedQueue for DoubleEndedQueue.Bytes32Deque;
 
+    // 定义了一个常量BALLOT_TYPEHASH，用于EIP-712签名的类型哈希
     bytes32 public constant BALLOT_TYPEHASH =
         keccak256("Ballot(uint256 proposalId,uint8 support,address voter,uint256 nonce)");
-    bytes32 public constant EXTENDED_BALLOT_TYPEHASH =
-        keccak256(
-            "ExtendedBallot(uint256 proposalId,uint8 support,address voter,uint256 nonce,string reason,bytes params)"
-        );
+    // 定义了另一个常量EXTENDED_BALLOT_TYPEHASH，用于具有额外参数的EIP-712签名
+    bytes32 public constant EXTENDED_BALLOT_TYPEHASH = keccak256(
+        "ExtendedBallot(uint256 proposalId,uint8 support,address voter,uint256 nonce,string reason,bytes params)"
+    );
 
+    // 定义了一个内部结构体ProposalCore，用于存储提案的核心数据
     struct ProposalCore {
         address proposer;
         uint48 voteStart;
@@ -43,6 +46,7 @@ abstract contract Governor is Context, ERC165, EIP712, Nonces, IGovernor, IERC72
         uint48 etaSeconds;
     }
 
+    // 定义了所有提案状态的位图和治理合约的名称
     bytes32 private constant ALL_PROPOSAL_STATES_BITMAP = bytes32((2 ** (uint8(type(ProposalState).max) + 1)) - 1);
     string private _name;
 
@@ -88,11 +92,10 @@ abstract contract Governor is Context, ERC165, EIP712, Nonces, IGovernor, IERC72
     /**
      * @dev See {IERC165-supportsInterface}.
      */
+    // 检查合约是否支持特定接口
     function supportsInterface(bytes4 interfaceId) public view virtual override(IERC165, ERC165) returns (bool) {
-        return
-            interfaceId == type(IGovernor).interfaceId ||
-            interfaceId == type(IERC1155Receiver).interfaceId ||
-            super.supportsInterface(interfaceId);
+        return interfaceId == type(IGovernor).interfaceId || interfaceId == type(IERC1155Receiver).interfaceId
+            || super.supportsInterface(interfaceId);
     }
 
     /**
@@ -173,6 +176,7 @@ abstract contract Governor is Context, ERC165, EIP712, Nonces, IGovernor, IERC72
         }
     }
 
+    // 接下来提供了一些获取提案相关信息的方法
     /**
      * @dev See {IGovernor-proposalThreshold}.
      */
@@ -211,6 +215,7 @@ abstract contract Governor is Context, ERC165, EIP712, Nonces, IGovernor, IERC72
     /**
      * @dev See {IGovernor-proposalNeedsQueuing}.
      */
+    // 获取某个提案的预计执行时间（ETA）。在治理系统中，提案在通过投票并成功进入执行阶段后，可能不会立即执行，而是会设定一个未来的具体时间点来执行。这个时间点就是所谓的ETA。
     function proposalNeedsQueuing(uint256) public view virtual returns (bool) {
         return false;
     }
@@ -220,6 +225,7 @@ abstract contract Governor is Context, ERC165, EIP712, Nonces, IGovernor, IERC72
      * itself, the function reverts if `msg.data` is not whitelisted as a result of an {execute}
      * operation. See {onlyGovernance}.
      */
+    // 检查当前调用是否有治理权限
     function _checkGovernance() internal virtual {
         if (_executor() != _msgSender()) {
             revert GovernorOnlyExecutor(_msgSender());
@@ -234,6 +240,7 @@ abstract contract Governor is Context, ERC165, EIP712, Nonces, IGovernor, IERC72
     /**
      * @dev Amount of votes already cast passes the threshold limit.
      */
+    // 已经投的票数超过了门槛限制
     function _quorumReached(uint256 proposalId) internal view virtual returns (bool);
 
     /**
@@ -244,20 +251,21 @@ abstract contract Governor is Context, ERC165, EIP712, Nonces, IGovernor, IERC72
     /**
      * @dev Get the voting weight of `account` at a specific `timepoint`, for a vote as described by `params`.
      */
-    function _getVotes(address account, uint256 timepoint, bytes memory params) internal view virtual returns (uint256);
+    // 根据给定的 account 、时间点和附加参数，计算一个账户的投票权重。投票权重在治理合约中至关重要，因为它决定了每个账户在投票中的影响力。（比如使用 ERC20 代币余额作为投票权重）
+    function _getVotes(address account, uint256 timepoint, bytes memory params)
+        internal
+        view
+        virtual
+        returns (uint256);
 
     /**
      * @dev Register a vote for `proposalId` by `account` with a given `support`, voting `weight` and voting `params`.
      *
      * Note: Support is generic and can represent various things depending on the voting system used.
      */
-    function _countVote(
-        uint256 proposalId,
-        address account,
-        uint8 support,
-        uint256 weight,
-        bytes memory params
-    ) internal virtual;
+    function _countVote(uint256 proposalId, address account, uint8 support, uint256 weight, bytes memory params)
+        internal
+        virtual;
 
     /**
      * @dev Default additional encoded parameters used by castVote methods that don't include them
@@ -344,12 +352,11 @@ abstract contract Governor is Context, ERC165, EIP712, Nonces, IGovernor, IERC72
     /**
      * @dev See {IGovernor-queue}.
      */
-    function queue(
-        address[] memory targets,
-        uint256[] memory values,
-        bytes[] memory calldatas,
-        bytes32 descriptionHash
-    ) public virtual returns (uint256) {
+    function queue(address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes32 descriptionHash)
+        public
+        virtual
+        returns (uint256)
+    {
         uint256 proposalId = hashProposal(targets, values, calldatas, descriptionHash);
 
         _validateStateBitmap(proposalId, _encodeStateBitmap(ProposalState.Succeeded));
@@ -380,10 +387,10 @@ abstract contract Governor is Context, ERC165, EIP712, Nonces, IGovernor, IERC72
      * `ProposalQueued` event. Queuing a proposal should be done using {queue}.
      */
     function _queueOperations(
-        uint256 /*proposalId*/,
-        address[] memory /*targets*/,
-        uint256[] memory /*values*/,
-        bytes[] memory /*calldatas*/,
+        uint256, /*proposalId*/
+        address[] memory, /*targets*/
+        uint256[] memory, /*values*/
+        bytes[] memory, /*calldatas*/
         bytes32 /*descriptionHash*/
     ) internal virtual returns (uint48) {
         return 0;
@@ -401,8 +408,7 @@ abstract contract Governor is Context, ERC165, EIP712, Nonces, IGovernor, IERC72
         uint256 proposalId = hashProposal(targets, values, calldatas, descriptionHash);
 
         _validateStateBitmap(
-            proposalId,
-            _encodeStateBitmap(ProposalState.Succeeded) | _encodeStateBitmap(ProposalState.Queued)
+            proposalId, _encodeStateBitmap(ProposalState.Succeeded) | _encodeStateBitmap(ProposalState.Queued)
         );
 
         // mark as executed before calls to avoid reentrancy
@@ -437,7 +443,7 @@ abstract contract Governor is Context, ERC165, EIP712, Nonces, IGovernor, IERC72
      * true or emit the `ProposalExecuted` event. Executing a proposal should be done using {execute} or {_execute}.
      */
     function _executeOperations(
-        uint256 /* proposalId */,
+        uint256, /* proposalId */
         address[] memory targets,
         uint256[] memory values,
         bytes[] memory calldatas,
@@ -488,10 +494,8 @@ abstract contract Governor is Context, ERC165, EIP712, Nonces, IGovernor, IERC72
 
         _validateStateBitmap(
             proposalId,
-            ALL_PROPOSAL_STATES_BITMAP ^
-                _encodeStateBitmap(ProposalState.Canceled) ^
-                _encodeStateBitmap(ProposalState.Expired) ^
-                _encodeStateBitmap(ProposalState.Executed)
+            ALL_PROPOSAL_STATES_BITMAP ^ _encodeStateBitmap(ProposalState.Canceled)
+                ^ _encodeStateBitmap(ProposalState.Expired) ^ _encodeStateBitmap(ProposalState.Executed)
         );
 
         _proposals[proposalId].canceled = true;
@@ -510,11 +514,12 @@ abstract contract Governor is Context, ERC165, EIP712, Nonces, IGovernor, IERC72
     /**
      * @dev See {IGovernor-getVotesWithParams}.
      */
-    function getVotesWithParams(
-        address account,
-        uint256 timepoint,
-        bytes memory params
-    ) public view virtual returns (uint256) {
+    function getVotesWithParams(address account, uint256 timepoint, bytes memory params)
+        public
+        view
+        virtual
+        returns (uint256)
+    {
         return _getVotes(account, timepoint, params);
     }
 
@@ -529,11 +534,11 @@ abstract contract Governor is Context, ERC165, EIP712, Nonces, IGovernor, IERC72
     /**
      * @dev See {IGovernor-castVoteWithReason}.
      */
-    function castVoteWithReason(
-        uint256 proposalId,
-        uint8 support,
-        string calldata reason
-    ) public virtual returns (uint256) {
+    function castVoteWithReason(uint256 proposalId, uint8 support, string calldata reason)
+        public
+        virtual
+        returns (uint256)
+    {
         address voter = _msgSender();
         return _castVote(proposalId, voter, support, reason);
     }
@@ -541,12 +546,11 @@ abstract contract Governor is Context, ERC165, EIP712, Nonces, IGovernor, IERC72
     /**
      * @dev See {IGovernor-castVoteWithReasonAndParams}.
      */
-    function castVoteWithReasonAndParams(
-        uint256 proposalId,
-        uint8 support,
-        string calldata reason,
-        bytes memory params
-    ) public virtual returns (uint256) {
+    function castVoteWithReasonAndParams(uint256 proposalId, uint8 support, string calldata reason, bytes memory params)
+        public
+        virtual
+        returns (uint256)
+    {
         address voter = _msgSender();
         return _castVote(proposalId, voter, support, reason, params);
     }
@@ -554,12 +558,11 @@ abstract contract Governor is Context, ERC165, EIP712, Nonces, IGovernor, IERC72
     /**
      * @dev See {IGovernor-castVoteBySig}.
      */
-    function castVoteBySig(
-        uint256 proposalId,
-        uint8 support,
-        address voter,
-        bytes memory signature
-    ) public virtual returns (uint256) {
+    function castVoteBySig(uint256 proposalId, uint8 support, address voter, bytes memory signature)
+        public
+        virtual
+        returns (uint256)
+    {
         bool valid = SignatureChecker.isValidSignatureNow(
             voter,
             _hashTypedDataV4(keccak256(abi.encode(BALLOT_TYPEHASH, proposalId, support, voter, _useNonce(voter)))),
@@ -615,12 +618,12 @@ abstract contract Governor is Context, ERC165, EIP712, Nonces, IGovernor, IERC72
      *
      * Emits a {IGovernor-VoteCast} event.
      */
-    function _castVote(
-        uint256 proposalId,
-        address account,
-        uint8 support,
-        string memory reason
-    ) internal virtual returns (uint256) {
+    // 内部投票机制：检查投票是否待处理，是否尚未投票，使用 {IGovernor-getVotes} 检索投票权重并调用 {_countVote} 内部函数。使用 _defaultParams()
+    function _castVote(uint256 proposalId, address account, uint8 support, string memory reason)
+        internal
+        virtual
+        returns (uint256)
+    {
         return _castVote(proposalId, account, support, reason, _defaultParams());
     }
 
@@ -630,13 +633,11 @@ abstract contract Governor is Context, ERC165, EIP712, Nonces, IGovernor, IERC72
      *
      * Emits a {IGovernor-VoteCast} event.
      */
-    function _castVote(
-        uint256 proposalId,
-        address account,
-        uint8 support,
-        string memory reason,
-        bytes memory params
-    ) internal virtual returns (uint256) {
+    function _castVote(uint256 proposalId, address account, uint8 support, string memory reason, bytes memory params)
+        internal
+        virtual
+        returns (uint256)
+    {
         _validateStateBitmap(proposalId, _encodeStateBitmap(ProposalState.Active));
 
         uint256 weight = _getVotes(account, proposalSnapshot(proposalId), params);
@@ -696,13 +697,11 @@ abstract contract Governor is Context, ERC165, EIP712, Nonces, IGovernor, IERC72
      * @dev See {IERC1155Receiver-onERC1155BatchReceived}.
      * Receiving tokens is disabled if the governance executor is other than the governor itself (eg. when using with a timelock).
      */
-    function onERC1155BatchReceived(
-        address,
-        address,
-        uint256[] memory,
-        uint256[] memory,
-        bytes memory
-    ) public virtual returns (bytes4) {
+    function onERC1155BatchReceived(address, address, uint256[] memory, uint256[] memory, bytes memory)
+        public
+        virtual
+        returns (bytes4)
+    {
         if (_executor() != address(this)) {
             revert GovernorDisabledDeposit();
         }
@@ -756,18 +755,24 @@ abstract contract Governor is Context, ERC165, EIP712, Nonces, IGovernor, IERC72
      * - If it ends with some other similar suffix, e.g. `#other=abc`.
      * - If it does not end with any such suffix.
      */
-    function _isValidDescriptionForProposer(
-        address proposer,
-        string memory description
-    ) internal view virtual returns (bool) {
+    // 检查提案描述是否包含特定格式的提案者地址。确保只有合法的提案者能够提交包含特定后缀的提案描述，防止他人恶意提交相同提案，从而保护提案的完整性和合法性
+    //如果提案描述末尾包含 #proposer=0x 标记并跟随一个 40 个十六进制字符的地址，那么这个提案只有特定的提案者才被允许提交。这种机制用于防止前置攻击（frontrunning attack），即确保只有合法的提案者能够提交该提案。
+    function _isValidDescriptionForProposer(address proposer, string memory description)
+        internal
+        view
+        virtual
+        returns (bool)
+    {
         uint256 len = bytes(description).length;
 
         // Length is too short to contain a valid proposer suffix
+        // 如果长度小于 52 个字节，说明描述不可能包含有效的提案者后缀，直接返回 true
         if (len < 52) {
             return true;
         }
 
         // Extract what would be the `#proposer=0x` marker beginning the suffix
+        // 使用内联汇编从描述末尾提取标记 #proposer=0x
         bytes12 marker;
         assembly {
             // - Start of the string contents in memory = description + 32
@@ -827,6 +832,7 @@ abstract contract Governor is Context, ERC165, EIP712, Nonces, IGovernor, IERC72
     /**
      * @inheritdoc IERC6372
      */
+    // clock 函数的主要作用是返回当前时间点，它通常用于治理合约中，用来确定当前时间。这个时间点可以用于各种时间相关的操作，例如投票开始时间、结束时间和提案的时间戳等。
     function clock() public view virtual returns (uint48);
 
     /**

@@ -106,13 +106,9 @@ library SafeERC20 {
      *
      * Reverts if the returned value is other than `true`.
      */
-    function transferFromAndCallRelaxed(
-        IERC1363 token,
-        address from,
-        address to,
-        uint256 value,
-        bytes memory data
-    ) internal {
+    function transferFromAndCallRelaxed(IERC1363 token, address from, address to, uint256 value, bytes memory data)
+        internal
+    {
         if (to.code.length == 0) {
             safeTransferFrom(token, from, to, value);
         } else if (!token.transferFromAndCall(from, to, value, data)) {
@@ -152,7 +148,7 @@ library SafeERC20 {
 
         bytes memory returndata = address(token).functionCall(data);
         // 某些 ERC-20 代币合约在执行成功时不返回任何数据。为了兼容这些合约，如果返回数据的长度为零，就认为操作是成功的;
-        // 如果有返回数据，那么返回值必须为 true（即操作转账成功与否） 才认为操作成功，否则认为操作失败。
+        // 如果有返回数据，那么返回值必须为 true（即操作转账成功）才认为操作成功，否则认为操作失败。
         if (returndata.length != 0 && !abi.decode(returndata, (bool))) {
             revert SafeERC20FailedOperation(address(token));
         }

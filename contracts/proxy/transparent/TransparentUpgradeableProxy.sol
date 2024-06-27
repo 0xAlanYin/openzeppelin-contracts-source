@@ -121,7 +121,8 @@ contract TransparentUpgradeableProxy is ERC1967Proxy {
      * - If `data` is empty, `msg.value` must be zero.
      */
     function _dispatchUpgradeToAndCall() private {
-        // 从 calldata 中获取新实现地址，然后使用 ERC1967Utils.UpgradeToAndCall，传入新实现地址和任何后续调用的数据。
+        // msg.data 的前四个字节是函数签名
+        // 从 calldata 中获取新实现合约的地址和 calldata，然后使用 ERC1967Utils.UpgradeToAndCall，传入新实现地址和任何后续调用的数据。
         (address newImplementation, bytes memory data) = abi.decode(msg.data[4:], (address, bytes));
         ERC1967Utils.upgradeToAndCall(newImplementation, data);
     }

@@ -216,6 +216,9 @@ abstract contract ERC4626 is ERC20, IERC4626 {
         uint256 assets = previewRedeem(shares);
         _withdraw(_msgSender(), receiver, owner, assets, shares);
 
+        // check receiver not 0
+        
+
         return assets;
     }
 

@@ -22,6 +22,7 @@ pragma solidity ^0.8.20;
  * to protect against it, check out our blog post
  * https://blog.openzeppelin.com/reentrancy-after-istanbul/[Reentrancy After Istanbul].
  */
+// 重入保护
 abstract contract ReentrancyGuard {
     // Booleans are more expensive than uint256 or any type that takes up a full
     // word because each write operation emits an extra SLOAD to first read the
@@ -55,6 +56,7 @@ abstract contract ReentrancyGuard {
      * by making the `nonReentrant` function external, and making it call a
      * `private` function that does the actual work.
      */
+    // 整个过程相当于上了锁：业务执行前加锁==>执行业务==>业务执行后解锁（与 Java 中的 ）
     modifier nonReentrant() {
         _nonReentrantBefore();
         _;
@@ -81,6 +83,7 @@ abstract contract ReentrancyGuard {
      * @dev Returns true if the reentrancy guard is currently set to "entered", which indicates there is a
      * `nonReentrant` function in the call stack.
      */
+    // 如果重入保护当前设置为“entered”，则返回 true，这表示调用堆栈中有一个“nonReentrant”函数。
     function _reentrancyGuardEntered() internal view returns (bool) {
         return _status == ENTERED;
     }
