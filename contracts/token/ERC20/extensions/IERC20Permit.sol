@@ -39,7 +39,8 @@ pragma solidity ^0.8.20;
  * Observe that: 1) `msg.sender` is used as the owner, leaving no ambiguity as to the signer intent, and 2) the use of
  * `try/catch` allows the permit to fail and makes the code tolerant to frontrunning. (See also
  * {SafeERC20-safeTransferFrom}).
- * 1) `msg.sender` 被用作owner,不会对签名者的意图留下任何歧义，并且 2）使用“try/catch”允许许可失败并使代码能够容忍抢先交易。
+ * 1) `msg.sender` 被用作owner,不会对签名者的意图留下任何歧义，
+ * 2）使用“try/catch”允许许可失败并使代码能够容忍抢先交易。
  *
  * Additionally, note that smart contract wallets (such as Argent or Safe) are not able to produce permit signatures, so
  * contracts should have entry points that don't rely on permit.

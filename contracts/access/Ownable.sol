@@ -7,13 +7,13 @@ import {Context} from "../utils/Context.sol";
 
 /**
  * @dev Contract module which provides a basic access control mechanism, where
- * there is an account (an owner) that can be granted exclusive access to
+ * there is an account (an owner) that can be granted exclusive（独占的） access to
  * specific functions.
  *
  * The initial owner is set to the address provided by the deployer. This can
  * later be changed with {transferOwnership}.
  *
- * This module is used through inheritance. It will make available the modifier
+ * This module is used through inheritance（继承）. It will make available the modifier
  * `onlyOwner`, which can be applied to your functions to restrict their use to
  * the owner.
  */
@@ -36,7 +36,7 @@ abstract contract Ownable is Context {
      * @dev Initializes the contract setting the address provided by the deployer as the initial owner.
      */
     constructor(address initialOwner) {
-        // 检查防止将 owner 设置为零地址
+        // 检查，防止将 owner 设置为零地址
         if (initialOwner == address(0)) {
             revert OwnableInvalidOwner(address(0));
         }
@@ -85,6 +85,7 @@ abstract contract Ownable is Context {
      * Can only be called by the current owner.
      */
     function transferOwnership(address newOwner) public virtual onlyOwner {
+        // 这个检查是为了防止误操作（如果真要放弃所有权，使用专门的 renounceOwnership）
         if (newOwner == address(0)) {
             revert OwnableInvalidOwner(address(0));
         }

@@ -18,6 +18,7 @@ import {Nonces} from "../../../utils/Nonces.sol";
  * need to send a transaction, and thus is not required to hold Ether at all.
  */
 abstract contract ERC20Permit is ERC20, IERC20Permit, EIP712, Nonces {
+    // 自定义的复杂结构体（ERC20Permit 的结构体标准化的）
     bytes32 private constant PERMIT_TYPEHASH =
         keccak256("Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)");
 
@@ -41,25 +42,22 @@ abstract contract ERC20Permit is ERC20, IERC20Permit, EIP712, Nonces {
     /**
      * @inheritdoc IERC20Permit
      */
-    function permit(
-        address owner,
-        address spender,
-        uint256 value,
-        uint256 deadline,
-        uint8 v,
-        bytes32 r,
-        bytes32 s
-    ) public virtual {
+    function permit(address owner, address spender, uint256 value, uint256 deadline, uint8 v, bytes32 r, bytes32 s)
+        public
+        virtual
+    {
         // 允许的操作未过期
         if (block.timestamp > deadline) {
             revert ERC2612ExpiredSignature(deadline);
         }
 
+        // 结构体哈希
         bytes32 structHash = keccak256(abi.encode(PERMIT_TYPEHASH, owner, spender, value, _useNonce(owner), deadline));
 
         bytes32 hash = _hashTypedDataV4(structHash);
 
         address signer = ECDSA.recover(hash, v, r, s);
+        // 检查签名者必须是 owner 本人
         if (signer != owner) {
             revert ERC2612InvalidSigner(signer, owner);
         }

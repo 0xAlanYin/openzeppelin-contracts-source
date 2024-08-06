@@ -29,12 +29,19 @@ abstract contract ReentrancyGuard {
     // slot's contents, replace the bits taken up by the boolean, and then write
     // back. This is the compiler's defense against contract upgrades and
     // pointer aliasing, and it cannot be disabled.
+    // - 布尔变量比 uint256 更昂贵：在 Solidity 中，布尔变量（boolean）在写操作时比 uint256 等类型更昂贵。
+    //这是因为每次写入操作需要先执行一次 SLOAD 操作读取槽的内容，然后替换布尔变量所占的位，再写回。这导致额外的存储操作开销。
+    // - 编译器防御措施：这种操作是编译器用来防止合约升级和指针别名的问题，无法被禁用。
 
     // The values being non-zero value makes deployment a bit more expensive,
     // but in exchange the refund on every call to nonReentrant will be lower in
     // amount. Since refunds are capped to a percentage of the total
     // transaction's gas, it is best to keep them low in cases like this one, to
     // increase the likelihood of the full refund coming into effect.
+    // - 非零值：将值设为非零（例如，NOT_ENTERED 设置为 1，ENTERED 设置为 2）会使部署合约时的费用稍高，因为初始化非零值比初始化零值成本更高。
+    // - 降低退款：但是，这样做的好处是在每次调用 nonReentrant 函数时，退款金额会更低。
+    //由于每次交易的退款金额上限是总交易 gas 的一个百分比，因此在这种情况下，保持退款金额较低可以增加获得全额退款的可能性。
+    //简言之，使用 uint256 变量比布尔变量更节省 gas 费用，因为 uint256 变量操作不会产生额外的 SLOAD 和 SSTORE 操作，减少了每次调用 nonReentrant 函数的总 gas 消耗。这使得交易的总 gas 消耗较低，提高了获得全额退款(没用完的 gas 会被退还)的可能。
     uint256 private constant NOT_ENTERED = 1;
     uint256 private constant ENTERED = 2;
 
